@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mvc_pattern/mvc_pattern.dart';
+import '../controllers/splash_controller.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() {
-    return SplashScreenState();
-  }
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
-class SplashScreenState extends StateMVC<SplashScreen> {
+class _SplashScreenState extends StateMVC<SplashScreen> {
+  SplashController _con;
+
+  _SplashScreenState() : super(SplashController()) {
+    _con = controller;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -18,15 +23,15 @@ class SplashScreenState extends StateMVC<SplashScreen> {
   }
 
   void loadData() {
-    Timer(Duration(seconds: 2), () {
-      Navigator.of(context).pushReplacementNamed('/SignUp', arguments: 2);
+    Timer(Duration(seconds: 4), () {
+      Navigator.of(context).pushReplacementNamed('/SignUp');
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: null,
+      key: _con.scaffoldKey,
       body: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,

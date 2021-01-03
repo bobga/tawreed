@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mvc_pattern/mvc_pattern.dart';
+import '../repository/setting_repository.dart' as settingRepo;
 
 class Controller extends ControllerMVC {
   GlobalKey<ScaffoldState> scaffoldKey;
@@ -8,5 +9,12 @@ class Controller extends ControllerMVC {
   }
 
   @override
-  void initState() {}
+  void initState() {
+    super.initState();
+    settingRepo.setCurrentLocation().then((locationData) {
+      setState(() {
+        settingRepo.locationData = locationData;
+      });
+    });
+  }
 }

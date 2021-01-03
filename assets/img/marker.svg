@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="93.797" height="93.797" viewBox="0 0 93.797 93.797">
+  <g id="current_location" data-name="current location" transform="translate(-53 -532)">
+    <path id="Oval" d="M46.9,0A46.9,46.9,0,1,1,0,46.9,46.9,46.9,0,0,1,46.9,0Z" transform="translate(53 532)" fill="#ff005e" opacity="0.2"/>
+    <circle id="Oval-2" data-name="Oval" cx="18.796" cy="18.796" r="18.796" transform="translate(81.194 560.148)" fill="#ff005e" opacity="0.3"/>
+    <g id="Oval-3" data-name="Oval" transform="translate(89.738 568.692)" fill="#ff005e" stroke="#f6f6f6" stroke-miterlimit="10" stroke-width="1">
+      <circle cx="10.252" cy="10.252" r="10.252" stroke="none"/>
+      <circle cx="10.252" cy="10.252" r="9.752" fill="none"/>
+    </g>
+  </g>
+</svg>

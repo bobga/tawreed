@@ -5,6 +5,7 @@ import 'package:mvc_pattern/mvc_pattern.dart';
 
 import 'route_generator.dart';
 import 'src/helpers/app_config.dart' as config;
+import 'src/controllers/controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ class MyApp extends AppMVC {
   // This widget is the root of your application.
 
   MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return DynamicTheme(

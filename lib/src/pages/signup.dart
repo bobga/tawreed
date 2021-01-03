@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mvc_pattern/mvc_pattern.dart';
+import 'package:string_validator/string_validator.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:global_configuration/global_configuration.dart';
+
+import '../controllers/customer_controller.dart';
+import '../repository/customer_repository.dart' as repo;
 import '../helpers/app_config.dart' as config;
+import '../models/route_argument.dart';
 
 class SignUpWidget extends StatefulWidget {
   @override
@@ -10,14 +18,47 @@ class SignUpWidget extends StatefulWidget {
 }
 
 class _SignUpWidgetState extends StateMVC<SignUpWidget> {
+  CustomerController _con;
+  bool isLoadingState = false;
+
+  _SignUpWidgetState() : super(CustomerController()) {
+    _con = controller;
+  }
+
+  final TextEditingController _passwordController = new TextEditingController();
+  final TextEditingController _phoneCodeController =
+      new TextEditingController();
+  final TextEditingController _mobileNoController = new TextEditingController();
+
   bool isConfirmed = true;
   bool isSubscribe = false;
+
+  bool _obscureTextPassword = true;
+  bool _obscureTextConfirmPassword = true;
+
+  void _togglePassword() {
+    setState(() {
+      _obscureTextPassword = !_obscureTextPassword;
+    });
+  }
+
+  void _toggleConfirmPassword() {
+    setState(() {
+      _obscureTextConfirmPassword = !_obscureTextConfirmPassword;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        key: null,
+        key: _con.scaffoldKey,
         resizeToAvoidBottomPadding: false,
         body: Stack(
           alignment: AlignmentDirectional.topCenter,
@@ -34,7 +75,7 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
               child: Container(
                 width: config.App(context).appWidth(90),
                 child: Form(
-                  key: null,
+                  key: _con.formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -48,9 +89,19 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                         "Create an account",
                         style: Theme.of(context).textTheme.display2,
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       TextFormField(
                         keyboardType: TextInputType.text,
+                        onSaved: (input) => repo.customer.firstName = input,
+                        validator: (String value) {
+                          if (isNull(value)) {
+                            return "First name is required";
+                          } else if (!isLength(value, 2, 20) ||
+                              !isAlpha(value)) {
+                            return "First name must be alphabet only, min 2 max 20";
+                          } else
+                            return null;
+                        },
                         decoration: InputDecoration(
                           hintText: "First Name",
                           hintStyle: Theme.of(context).textTheme.display1,
@@ -66,11 +117,22 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                             minHeight: 25,
                             minWidth: 25,
                           ),
+                          errorStyle: TextStyle(height: 0.4),
                         ),
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       TextFormField(
                         keyboardType: TextInputType.text,
+                        onSaved: (input) => repo.customer.lastName = input,
+                        validator: (String value) {
+                          if (isNull(value)) {
+                            return "Last name is required";
+                          } else if (!isLength(value, 2, 20) ||
+                              !isAlpha(value)) {
+                            return "Last name must be alphabet only, min 2 max 20";
+                          } else
+                            return null;
+                        },
                         decoration: InputDecoration(
                           hintText: "Last Name",
                           hintStyle: Theme.of(context).textTheme.display1,
@@ -86,9 +148,10 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                             minHeight: 25,
                             minWidth: 25,
                           ),
+                          errorStyle: TextStyle(height: 0.4),
                         ),
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -96,61 +159,160 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                             child: Container(
                               width: config.App(context).appWidth(35),
                               child: DropdownButtonFormField(
-                                hint: Icon(
-                                  Icons.phone_iphone,
-                                  color: Theme.of(context).hintColor,
-                                ),
+                                validator: (String value) {
+                                  if (isNull(value))
+                                    return "Phone code is required";
+                                  else
+                                    return null;
+                                },
                                 icon: Icon(Icons.keyboard_arrow_down),
-                                items: [],
-                                onChanged: (val) => print(val),
-                                onSaved: (val) => print(val),
+                                items: _con.phoneCodeList
+                                    .map(
+                                      (code) => DropdownMenuItem(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                            left: config.App(context)
+                                                .appWidth(10),
+                                          ),
+                                          child: Text(
+                                            code,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .display2,
+                                          ),
+                                        ),
+                                        value: code.toString(),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _phoneCodeController.text = val;
+                                  });
+                                },
+                                onSaved: (input) =>
+                                    repo.customer.phoneCode = input,
+                                decoration: InputDecoration(
+                                  hintStyle:
+                                      Theme.of(context).textTheme.display1,
+                                  prefixIcon: Icon(
+                                    Icons.phone_iphone,
+                                    color: Theme.of(context).hintColor,
+                                  ),
+                                  prefixIconConstraints: BoxConstraints(
+                                    minHeight: 25,
+                                    minWidth: 25,
+                                  ),
+                                  errorStyle: TextStyle(height: 0.4),
+                                ),
                               ),
                             ),
                           ),
                           Flexible(
                             child: TextFormField(
+                              controller: _mobileNoController,
                               keyboardType: TextInputType.phone,
+                              onSaved: (input) =>
+                                  repo.customer.mobileNo = input,
+                              validator: (String value) {
+                                if (isNull(value)) {
+                                  return "Mobile number is required";
+                                } else if (!isNumeric(value)) {
+                                  return "Mobile must be numeric only";
+                                } else if (!isLength(value, 9, 10)) {
+                                  return "Mobile must be min 9, max 10";
+                                } else if (_con.isUnique == false) {
+                                  return "Mobile number already registered";
+                                } else
+                                  return null;
+                              },
                               decoration: InputDecoration(
                                 hintText: "Mobile Number",
                                 hintStyle: Theme.of(context).textTheme.display1,
+                                errorStyle: TextStyle(height: 0.4),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       TextFormField(
-                        obscureText: true,
+                        controller: _passwordController,
+                        obscureText: _obscureTextPassword,
                         keyboardType: TextInputType.visiblePassword,
+                        onSaved: (input) {
+                          repo.customer.password = input;
+                        },
+                        validator: (String value) {
+                          if (isNull(value)) {
+                            return "Password is required";
+                          } else if (!isLength(value, 8, 20)) {
+                            return "Password must be min 8, max 20";
+                          } else
+                            return null;
+                        },
                         decoration: InputDecoration(
-                            hintText: "Password",
-                            hintStyle: Theme.of(context).textTheme.display1,
-                            prefixIcon: Tab(
-                              icon: Icon(Icons.lock_outline),
+                          hintText: "Password",
+                          hintStyle: Theme.of(context).textTheme.display1,
+                          prefixIcon: Tab(
+                            icon: Icon(Icons.lock_outline),
+                          ),
+                          prefixIconConstraints: BoxConstraints(
+                            minHeight: 25,
+                            minWidth: 25,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.remove_red_eye_outlined,
+                              color: _obscureTextPassword
+                                  ? Theme.of(context).hintColor
+                                  : Theme.of(context).focusColor,
                             ),
-                            prefixIconConstraints: BoxConstraints(
-                              minHeight: 25,
-                              minWidth: 25,
-                            ),
-                            suffixIcon: Icon(Icons.remove_red_eye_outlined)),
+                            onPressed: _togglePassword,
+                          ),
+                          errorStyle: TextStyle(height: 0.4),
+                        ),
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       TextFormField(
-                        obscureText: true,
+                        obscureText: _obscureTextConfirmPassword,
                         keyboardType: TextInputType.visiblePassword,
+                        onSaved: (input) {
+                          repo.customer.confirmPassword = input;
+                        },
+                        validator: (String value) {
+                          if (isNull(value)) {
+                            return "Confirm password is required";
+                          } else if (!isLength(value, 8, 20)) {
+                            return "Confirm password must be min 8, max 20";
+                          } else if (!equals(value, _passwordController.text)) {
+                            return "Password does not match";
+                          } else
+                            return null;
+                        },
                         decoration: InputDecoration(
-                            hintText: "Confirm Password",
-                            hintStyle: Theme.of(context).textTheme.display1,
-                            prefixIcon: Tab(
-                              icon: Icon(Icons.lock_outline),
+                          hintText: "Confirm Password",
+                          hintStyle: Theme.of(context).textTheme.display1,
+                          prefixIcon: Tab(
+                            icon: Icon(Icons.lock_outline),
+                          ),
+                          prefixIconConstraints: BoxConstraints(
+                            minHeight: 25,
+                            minWidth: 25,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.remove_red_eye_outlined,
+                              color: _obscureTextConfirmPassword
+                                  ? Theme.of(context).hintColor
+                                  : Theme.of(context).focusColor,
                             ),
-                            prefixIconConstraints: BoxConstraints(
-                              minHeight: 25,
-                              minWidth: 25,
-                            ),
-                            suffixIcon: Icon(Icons.remove_red_eye_outlined)),
+                            onPressed: _toggleConfirmPassword,
+                          ),
+                          errorStyle: TextStyle(height: 0.4),
+                        ),
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -167,29 +329,38 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                                 Theme.of(context).scaffoldBackgroundColor,
                           ),
                           Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                children: <TextSpan>[
-                                  TextSpan(
-                                    text:
-                                        "I confirm that I`ve read and agree on Tawreed",
-                                    style: Theme.of(context).textTheme.body2,
-                                  ),
-                                  TextSpan(
-                                    text: " Terms and condition",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      height: 1.4,
-                                      color: Theme.of(context).focusColor,
+                            child: InkWell(
+                              onTap: () async {
+                                if (await canLaunch(
+                                    '${GlobalConfiguration().getString('base_url')}termsandconditions.html')) {
+                                  await launch(
+                                      '${GlobalConfiguration().getString('base_url')}termsandconditions.html');
+                                }
+                              },
+                              child: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                      text:
+                                          "I confirm that I`ve read and agree on Tawreed",
+                                      style: Theme.of(context).textTheme.body2,
                                     ),
-                                  ),
-                                ],
+                                    TextSpan(
+                                      text: " Terms and condition",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        height: 1.4,
+                                        color: Theme.of(context).focusColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -219,27 +390,62 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                           ),
                         ],
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(1.2)),
                       ButtonTheme(
                         minWidth: config.App(context).appWidth(90),
                         height: config.App(context).appHeight(6),
                         child: RaisedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushReplacementNamed(
-                                '/MobileVerification',
-                                arguments: 2);
+                          onPressed: () async {
+                            setState(() {
+                              isLoadingState = true;
+                              repo.customer.subscribeNewsLetter = isSubscribe;
+                            });
+                            await _con.isMobileUnique(
+                                _phoneCodeController.text +
+                                    _mobileNoController.text);
+                            print(
+                                "phone: ${_phoneCodeController.text + _mobileNoController.text}");
+                            print("isUnique: +${_con.isUnique}");
+
+                            if (_con.formKey.currentState.validate() &&
+                                isConfirmed == true) {
+                              _con.formKey.currentState.save();
+                              _con
+                                  .sendOTP(_phoneCodeController.text +
+                                      _mobileNoController.text)
+                                  .then((phone) {
+                                if (phone != null) {
+                                  Navigator.of(context).pushReplacementNamed(
+                                      '/MobileVerification',
+                                      arguments: RouteArgument(param: phone));
+                                }
+                              });
+                            } else {
+                              setState(() {
+                                isLoadingState = false;
+                              });
+                            }
                           },
-                          child: Text(
-                            "Continue",
-                            style: TextStyle(
-                                fontSize: 18,
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor),
-                          ),
-                          color: Theme.of(context).primaryColor,
+                          child: isLoadingState == false
+                              ? Text(
+                                  "Continue",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor),
+                                )
+                              : Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                          color: isLoadingState == false
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).hintColor,
                         ),
                       ),
-                      SizedBox(height: config.App(context).appHeight(1.5)),
+                      SizedBox(height: config.App(context).appHeight(0.5)),
                       FlatButton(
                         onPressed: () {},
                         child: Row(
@@ -283,7 +489,7 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
               ),
             ),
             Positioned(
-              bottom: 10,
+              bottom: 5,
               child: FlatButton(
                   onPressed: () {},
                   child: RichText(

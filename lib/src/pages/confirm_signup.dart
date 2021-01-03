@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:mvc_pattern/mvc_pattern.dart';
+import 'package:tawreed/src/controllers/customer_controller.dart';
 import '../helpers/app_config.dart' as config;
+import '../repository/customer_repository.dart' as repo;
 
 class ConfirmSingUp extends StatefulWidget {
   @override
   _ConfirmSingUpState createState() => _ConfirmSingUpState();
 }
 
-class _ConfirmSingUpState extends State<ConfirmSingUp> {
+class _ConfirmSingUpState extends StateMVC<ConfirmSingUp> {
+  CustomerController _con;
+  bool isLoadingState = false;
+  _ConfirmSingUpState() : super(CustomerController()) {
+    _con = controller;
+  }
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,16 +75,35 @@ class _ConfirmSingUpState extends State<ConfirmSingUp> {
                 ),
                 child: RaisedButton(
                   onPressed: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed('/SignUp', arguments: 2);
+                    setState(() {
+                      isLoadingState = true;
+                    });
+                    _con.register(repo.customer).then((result) {
+                      if (result == true) {
+                        setState(() {
+                          isLoadingState = false;
+                        });
+                      }
+                    });
+                    print("confirm");
+                    print(repo.customer.toMap());
                   },
-                  child: Text(
-                    "Confirm",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).scaffoldBackgroundColor),
-                  ),
-                  color: Theme.of(context).primaryColor,
+                  child: isLoadingState == false
+                      ? Text(
+                          "Confirm",
+                          style: TextStyle(
+                              fontSize: 18,
+                              color: Theme.of(context).scaffoldBackgroundColor),
+                        )
+                      : Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).primaryColor),
+                          ),
+                        ),
+                  color: isLoadingState == false
+                      ? Theme.of(context).primaryColor
+                      : Theme.of(context).hintColor,
                 ),
               ),
             ),
