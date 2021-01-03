@@ -17,3 +17,5 @@ samples, guidance on mobile development, and a full API reference.
 
 
 api collection:  https://www.getpostman.com/collections/e0f96e9666a06336a0d4
+
+api_base_url : http://54.88.24.255
