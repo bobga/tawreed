@@ -1,10 +1,10 @@
 # Tawreed
 
-Tawreed is a web-based platform for managing procurement processes and supplier relationships.
+Tawreed is a procurement management app built with Flutter and Dart.
 
 ## Description
 
-Tawreed is a comprehensive procurement management system designed to streamline the procurement process, manage supplier relationships, and track purchasing activities. It provides a user-friendly interface for creating, managing, and tracking procurement requests, bids, contracts, and payments. Tawreed helps organizations automate their procurement workflow, improve transparency, and make data-driven decisions.
+Tawreed is a mobile application designed to streamline procurement processes and manage supplier relationships on the go. It provides a user-friendly interface for creating, managing, and tracking procurement requests, bids, contracts, and payments. Tawreed helps organizations automate their procurement workflow, improve transparency, and make data-driven decisions, all from the convenience of a mobile device.
 
 ## Features
 
@@ -15,14 +15,10 @@ Tawreed is a comprehensive procurement management system designed to streamline 
 - Track payment status and manage invoices.
 - Generate reports for analysis and auditing purposes.
 
-## Technologies Used
+## Screenshots
 
-- Django
-- Django REST Framework
-- PostgreSQL
-- React.js
-- Redux
-- Material-UI
+![Screenshot 1](/screenshots/screenshot1.png)
+![Screenshot 2](/screenshots/screenshot2.png)
 
 ## Installation
 
@@ -38,41 +34,21 @@ Navigate to the project directory:
 cd tawreed
 ```
 
-Install backend dependencies:
+Install dependencies:
 
 ```bash
-pip install -r requirements.txt
-```
-
-Set up the PostgreSQL database (ensure PostgreSQL is installed and running):
-
-```bash
-python manage.py migrate
-```
-
-Install frontend dependencies:
-
-```bash
-cd frontend
-npm install
+flutter pub get
 ```
 
 ## Usage
 
-Start the Django development server:
+Connect your mobile device or emulator.
+Run the app:
 
 ```bash
-python manage.py runserver
+flutter run
 ```
 
-Start the React development server (in a separate terminal):
-
-```bash
-cd frontend
-npm start
-```
-
-Access the web application at http://localhost:3000 in your browser.
 Use the provided interface to create, manage, and track procurement activities.
 
 ## Contributing
@@ -82,3 +58,4 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 ## License
 
 This project is licensed under the MIT License.
+
